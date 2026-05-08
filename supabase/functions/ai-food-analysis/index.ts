@@ -40,7 +40,7 @@ serve(async (req) => {
   const text = payload.output_text ?? "{}";
   const parsed = JSON.parse(text);
 
-  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SERVICE_ROLE_KEY")!);
   await supabase.from("ai_food_analyses").insert({
     user_id: userId,
     image_url: imageUrl,
