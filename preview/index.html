@@ -1,0 +1,1004 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aura Diet Preview</title>
+    <style>
+      :root {
+        --bg: #f8fbff;
+        --ink: #10151f;
+        --muted: #687384;
+        --panel: rgba(255, 255, 255, 0.7);
+        --line: rgba(16, 21, 31, 0.08);
+        --mint: #26d79c;
+        --coral: #ff725e;
+        --blue: #5878ff;
+        --violet: #9d69ff;
+        --gold: #ffc857;
+        --pink: #ff5aa5;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow: hidden;
+        padding: 14px;
+        display: grid;
+        place-items: center;
+        background:
+          linear-gradient(118deg, rgba(38, 215, 156, 0.24) 0 18%, transparent 18% 100%),
+          linear-gradient(222deg, rgba(157, 105, 255, 0.24) 0 20%, transparent 20% 100%),
+          linear-gradient(310deg, rgba(255, 114, 94, 0.18) 0 22%, transparent 22% 100%),
+          linear-gradient(135deg, #ffffff, var(--bg) 48%, #eef3ff);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        perspective: 1200px;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:focus-visible,
+      input:focus-visible {
+        outline: 3px solid rgba(88, 120, 255, 0.32);
+        outline-offset: 2px;
+      }
+
+      body.dark-preview {
+        --bg: #10151f;
+        --ink: #f8fbff;
+        --muted: #aab5c7;
+        --panel: rgba(24, 31, 47, 0.74);
+        --line: rgba(255, 255, 255, 0.1);
+      }
+
+      body.dark-preview .phone {
+        background:
+          linear-gradient(160deg, rgba(20, 26, 40, 0.96), rgba(27, 35, 57, 0.9)),
+          linear-gradient(135deg, rgba(38, 215, 156, 0.12), rgba(88, 120, 255, 0.14));
+      }
+
+      body.dark-preview .ring::after,
+      body.dark-preview .metric,
+      body.dark-preview .field {
+        background: rgba(24, 31, 47, 0.86);
+      }
+
+      body.dark-preview .tabs {
+        background: rgba(24, 31, 47, 0.94);
+      }
+
+      .phone {
+        width: min(430px, calc(100vw - 20px));
+        height: min(900px, calc(100vh - 28px));
+        background:
+          linear-gradient(160deg, rgba(255, 255, 255, 0.94), rgba(240, 246, 255, 0.88)),
+          linear-gradient(135deg, rgba(38, 215, 156, 0.15), rgba(88, 120, 255, 0.12));
+        border: 1px solid rgba(255, 255, 255, 0.92);
+        border-radius: 38px;
+        box-shadow:
+          0 42px 90px rgba(31, 41, 71, 0.25),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        overflow: hidden;
+        position: relative;
+        transform: rotateX(1deg) rotateY(-1.5deg);
+      }
+
+      .screen {
+        height: 100%;
+        overflow: auto;
+        padding: 20px 18px 112px;
+        scrollbar-width: thin;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 30px;
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        font-size: 19px;
+        margin: 22px 0 12px;
+      }
+
+      h3 {
+        font-size: 16px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .top {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .avatar {
+        border: 0;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--mint), var(--blue), var(--violet));
+        display: grid;
+        place-items: center;
+        color: white;
+        font-weight: 900;
+        box-shadow: 0 16px 34px rgba(88, 120, 255, 0.32);
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 17px;
+        backdrop-filter: blur(18px);
+        box-shadow:
+          0 20px 50px rgba(40, 53, 88, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.75);
+      }
+
+      .hero-card {
+        position: relative;
+        min-height: 166px;
+        overflow: hidden;
+        background:
+          linear-gradient(135deg, rgba(16, 21, 31, 0.96), rgba(34, 42, 74, 0.94)),
+          linear-gradient(90deg, var(--mint), var(--violet));
+        color: white;
+      }
+
+      .hero-card .muted {
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .hero-stat {
+        width: 58%;
+        position: relative;
+        z-index: 2;
+      }
+
+      .nutrition-cube {
+        position: absolute;
+        right: 26px;
+        top: 24px;
+        width: 104px;
+        height: 104px;
+        transform-style: preserve-3d;
+        transform: rotateX(-18deg) rotateY(28deg);
+        animation: floatCube 4s ease-in-out infinite;
+      }
+
+      .cube-face {
+        position: absolute;
+        inset: 0;
+        border-radius: 24px;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        box-shadow: inset 0 1px 18px rgba(255, 255, 255, 0.2);
+      }
+
+      .cube-front {
+        background: linear-gradient(135deg, var(--mint), #28b7ff);
+        transform: translateZ(42px);
+      }
+
+      .cube-right {
+        background: linear-gradient(135deg, var(--violet), var(--pink));
+        transform: rotateY(90deg) translateZ(42px);
+      }
+
+      .cube-top {
+        background: linear-gradient(135deg, var(--gold), var(--coral));
+        transform: rotateX(90deg) translateZ(42px);
+      }
+
+      .rings,
+      .metrics,
+      .actions,
+      .premium-row,
+      .settings-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .rings,
+      .metrics,
+      .actions {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .metrics,
+      .actions,
+      .premium-row {
+        margin-top: 14px;
+      }
+
+      .premium-row,
+      .settings-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .ring {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background:
+          conic-gradient(var(--c) calc(var(--p) * 1%), rgba(17, 23, 25, 0.08) 0),
+          linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.36));
+        position: relative;
+        box-shadow: 0 18px 32px rgba(40, 53, 88, 0.12);
+      }
+
+      .ring::after {
+        content: "";
+        width: 72%;
+        height: 72%;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.88);
+        position: absolute;
+      }
+
+      .ring span {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .ring strong {
+        display: block;
+        color: var(--ink);
+        font-size: 18px;
+      }
+
+      .metric,
+      .action,
+      .small-btn {
+        border-radius: 18px;
+        padding: 12px;
+        min-height: 76px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+      }
+
+      .metric {
+        background: rgba(255, 255, 255, 0.62);
+      }
+
+      .metric strong,
+      .action strong {
+        display: block;
+        font-size: 16px;
+      }
+
+      .action,
+      .primary,
+      .small-btn {
+        border: 0;
+        color: white;
+        text-align: left;
+        background: linear-gradient(135deg, var(--a), var(--b));
+        box-shadow: 0 16px 28px rgba(40, 53, 88, 0.14);
+        transform: translateY(0);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+      }
+
+      .action:hover,
+      .primary:hover,
+      .small-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 20px 34px rgba(40, 53, 88, 0.2);
+      }
+
+      .mini-3d {
+        border: 0;
+        text-align: left;
+        border-radius: 20px;
+        padding: 14px;
+        color: white;
+        background: linear-gradient(135deg, var(--a), var(--b));
+        transform: translateZ(24px);
+        box-shadow: 0 18px 34px rgba(40, 53, 88, 0.16);
+      }
+
+      .meal {
+        display: grid;
+        grid-template-columns: 72px 1fr auto;
+        gap: 13px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .photo {
+        width: 72px;
+        height: 72px;
+        border-radius: 18px;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.62), transparent 42%),
+          conic-gradient(from 20deg, #ffd166, #30d6a0, #ff725e, #ffd166);
+        box-shadow:
+          inset 0 0 0 12px rgba(255, 255, 255, 0.4),
+          0 14px 24px rgba(31, 41, 71, 0.14);
+      }
+
+      .iconbtn {
+        width: 34px;
+        height: 34px;
+        border: 0;
+        border-radius: 12px;
+        background: rgba(17, 23, 25, 0.06);
+      }
+
+      .tabs {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 12px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 7px;
+        backdrop-filter: blur(18px);
+        box-shadow: 0 18px 42px rgba(31, 41, 71, 0.14);
+      }
+
+      .tab {
+        border: 0;
+        background: transparent;
+        border-radius: 16px;
+        padding: 9px 4px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .tab.active {
+        background: linear-gradient(135deg, var(--ink), #33415f);
+        color: white;
+      }
+
+      .view {
+        display: none;
+        animation: rise 0.28s ease both;
+      }
+
+      .view.active {
+        display: block;
+      }
+
+      .scan {
+        height: 390px;
+        border-radius: 28px;
+        background:
+          linear-gradient(135deg, rgba(38, 215, 156, 0.18), transparent),
+          linear-gradient(225deg, rgba(157, 105, 255, 0.22), transparent),
+          #111719;
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+        color: white;
+        box-shadow: inset 0 0 80px rgba(88, 120, 255, 0.18);
+      }
+
+      .fridge-scan {
+        height: 300px;
+        border-radius: 28px;
+        background:
+          linear-gradient(160deg, rgba(255, 255, 255, 0.16), transparent 45%),
+          radial-gradient(circle at 25% 24%, rgba(38, 215, 156, 0.28), transparent 26%),
+          radial-gradient(circle at 72% 34%, rgba(255, 200, 87, 0.28), transparent 26%),
+          radial-gradient(circle at 52% 74%, rgba(255, 90, 165, 0.2), transparent 28%),
+          #121925;
+        position: relative;
+        overflow: hidden;
+        color: white;
+        display: grid;
+        place-items: center;
+        box-shadow: inset 0 0 80px rgba(88, 120, 255, 0.16);
+      }
+
+      .fridge-shelf {
+        position: absolute;
+        left: 34px;
+        right: 34px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.26);
+      }
+
+      .fridge-shelf.one {
+        top: 95px;
+      }
+
+      .fridge-shelf.two {
+        top: 188px;
+      }
+
+      .food-dot {
+        position: absolute;
+        border-radius: 18px;
+        padding: 7px 9px;
+        font-size: 12px;
+        font-weight: 800;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
+      }
+
+      .recipe-card {
+        margin-bottom: 10px;
+      }
+
+      .recipe-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+
+      .scan::before,
+      .scan::after {
+        content: "";
+        position: absolute;
+        border: 2px solid var(--mint);
+        border-radius: 22px;
+      }
+
+      .scan::before {
+        width: 250px;
+        height: 112px;
+        top: 84px;
+      }
+
+      .scan::after {
+        width: 190px;
+        height: 92px;
+        bottom: 104px;
+      }
+
+      .bar {
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(17, 23, 25, 0.08);
+        overflow: hidden;
+      }
+
+      .bar i {
+        display: block;
+        height: 100%;
+        width: var(--w);
+        background: linear-gradient(90deg, var(--c), var(--violet));
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .primary {
+        width: 100%;
+        border-radius: 18px;
+        padding: 14px 16px;
+        text-align: center;
+        font-weight: 800;
+        margin-top: 12px;
+      }
+
+      .field,
+      .select {
+        width: 100%;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.74);
+        border-radius: 16px;
+        padding: 13px 14px;
+        color: var(--ink);
+        margin-top: 10px;
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .chip {
+        border: 0;
+        border-radius: 999px;
+        padding: 9px 12px;
+        background: rgba(16, 21, 31, 0.07);
+        color: var(--ink);
+      }
+
+      .sheet {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 86px;
+        display: none;
+        z-index: 4;
+      }
+
+      .sheet.active {
+        display: block;
+        animation: rise 0.22s ease both;
+      }
+
+      .toast {
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        top: 22px;
+        z-index: 6;
+        display: none;
+        padding: 13px 15px;
+        border-radius: 18px;
+        color: white;
+        background: linear-gradient(135deg, #10151f, #33415f);
+        box-shadow: 0 20px 40px rgba(16, 21, 31, 0.24);
+      }
+
+      .toast.active {
+        display: block;
+        animation: rise 0.2s ease both;
+      }
+
+      @keyframes floatCube {
+        0%, 100% {
+          transform: rotateX(-18deg) rotateY(28deg) translateY(0);
+        }
+        50% {
+          transform: rotateX(-10deg) rotateY(38deg) translateY(-8px);
+        }
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone">
+      <div class="toast" id="toast" role="status"></div>
+      <section class="screen" id="screen">
+        <div class="view active" id="home">
+          <div class="top">
+            <div style="flex: 1">
+              <p class="muted">Friday, May 8 - <span id="streakText">12</span> day streak</p>
+              <h1>Good morning, Yogesh</h1>
+            </div>
+            <button class="avatar" data-testid="avatar" onclick="show('profile')">Y</button>
+          </div>
+
+          <h2>Daily progress</h2>
+          <div class="card hero-card">
+            <div class="hero-stat">
+              <p class="muted">Today's balance</p>
+              <h1><span id="remainingText">680</span> kcal left</h1>
+              <p class="muted" id="coachLine">Protein on track, water needs one more bottle.</p>
+            </div>
+            <div class="nutrition-cube" aria-hidden="true">
+              <div class="cube-face cube-front">KCAL</div>
+              <div class="cube-face cube-right">AI</div>
+              <div class="cube-face cube-top" id="cubeProtein">P96</div>
+            </div>
+          </div>
+
+          <br />
+          <div class="card">
+            <div class="rings">
+              <div class="ring" id="calRing" style="--p: 67; --c: var(--mint)"><span><strong id="calRingText">680</strong>left</span></div>
+              <div class="ring" id="proteinRing" style="--p: 69; --c: var(--coral)"><span><strong id="proteinText">96g</strong>protein</span></div>
+              <div class="ring" id="waterRing" style="--p: 60; --c: var(--blue)"><span><strong id="waterText">1.8L</strong>water</span></div>
+            </div>
+            <div class="premium-row">
+              <button class="mini-3d" style="--a: var(--violet); --b: var(--blue)" data-testid="coach-card" onclick="aiSuggestion()"><strong>AI Coach</strong><p id="aiCoachText">Gujarati dinner idea ready</p></button>
+              <button class="mini-3d" style="--a: var(--gold); --b: var(--coral)" data-testid="streak-card" onclick="toast('Streak saved. Weekly challenge is active.')"><strong>Streak</strong><p>12 days strong</p></button>
+            </div>
+            <div class="metrics">
+              <div class="metric"><strong id="carbText">154g</strong><span class="muted">Carbs</span></div>
+              <div class="metric"><strong id="fatText">42g</strong><span class="muted">Fat</span></div>
+              <div class="metric"><strong id="stepsText">7,420</strong><span class="muted">Steps</span></div>
+            </div>
+          </div>
+
+          <h2>Quick actions</h2>
+          <div class="actions">
+            <button class="action" data-testid="add-meal" style="--a: var(--mint); --b: var(--blue)" onclick="openSheet('mealSheet')"><strong>+</strong>Add Meal</button>
+            <button class="action" data-testid="scan-food" style="--a: var(--violet); --b: var(--pink)" onclick="show('scan')"><strong>#</strong>Scan Food</button>
+            <button class="action" data-testid="add-water" style="--a: #2dc7ff; --b: var(--blue)" onclick="addWater(250)"><strong>~</strong>Add Water</button>
+            <button class="action" data-testid="add-weight" style="--a: var(--gold); --b: var(--coral)" onclick="openSheet('weightSheet')"><strong>kg</strong>Add Weight</button>
+            <button class="action" data-testid="ai-suggestion" style="--a: #21d4aa; --b: #7b61ff" onclick="aiSuggestion()"><strong>AI</strong>Suggestion</button>
+            <button class="action" data-testid="barcode" style="--a: #111719; --b: #455a82" onclick="show('scan'); toast('Barcode scanner ready. Demo food matched.')"><strong>||</strong>Barcode</button>
+          </div>
+
+          <h2>Meal timeline</h2>
+          <div id="mealList"></div>
+        </div>
+
+        <div class="view" id="analytics">
+          <h1>Analytics</h1>
+          <p class="muted">Smooth weekly nutrition insights.</p>
+          <h2>Daily calories</h2>
+          <div class="card">
+            <div class="bar" style="--w: 70%; --c: var(--mint)"><i></i></div><br />
+            <div class="bar" style="--w: 88%; --c: var(--coral)"><i></i></div><br />
+            <div class="bar" style="--w: 62%; --c: var(--blue)"><i></i></div><br />
+            <div class="bar" id="todayBar" style="--w: 68%; --c: var(--mint)"><i></i></div>
+          </div>
+          <h2>Macro split</h2>
+          <div class="card rings">
+            <div class="ring" style="--p: 40; --c: var(--blue)"><span><strong>40%</strong>carbs</span></div>
+            <div class="ring" style="--p: 35; --c: var(--mint)"><span><strong>35%</strong>protein</span></div>
+            <div class="ring" style="--p: 25; --c: var(--coral)"><span><strong>25%</strong>fat</span></div>
+          </div>
+          <button class="primary" style="--a: var(--violet); --b: var(--blue)" data-testid="export-report" onclick="toast('Weekly PDF report exported.')">Export weekly report</button>
+        </div>
+
+        <div class="view" id="scan">
+          <h1>AI food scan</h1>
+          <p class="muted">Camera overlay, food boxes, editable macros.</p>
+          <h2>Scanning</h2>
+          <div class="scan" data-testid="scanner">AI detecting plate...</div>
+          <h2>Detected foods</h2>
+          <div id="scanResults"></div>
+          <button class="primary" style="--a: var(--mint); --b: var(--blue)" data-testid="save-scan" onclick="saveScan()">Add scan to daily log</button>
+          <button class="primary" style="--a: var(--violet); --b: var(--pink)" data-testid="rescan" onclick="toast('Fresh scan complete. 3 foods detected.')">Rescan plate</button>
+          <button class="primary" style="--a: var(--gold); --b: var(--coral)" data-testid="fridge-scan-open" onclick="show('fridge')">Scan fridge for recipes</button>
+        </div>
+
+        <div class="view" id="fridge">
+          <h1>Fridge AI Coach</h1>
+          <p class="muted">Scan ingredients and get recipes from what is visible.</p>
+          <h2>Fridge scan</h2>
+          <div class="fridge-scan" data-testid="fridge-camera">
+            <div class="fridge-shelf one"></div>
+            <div class="fridge-shelf two"></div>
+            <span class="food-dot" style="left: 42px; top: 48px; background: linear-gradient(135deg, var(--mint), var(--blue))">Paneer</span>
+            <span class="food-dot" style="right: 56px; top: 70px; background: linear-gradient(135deg, var(--gold), var(--coral))">Tomato</span>
+            <span class="food-dot" style="left: 78px; top: 148px; background: linear-gradient(135deg, var(--violet), var(--pink))">Curd</span>
+            <span class="food-dot" style="right: 42px; top: 166px; background: linear-gradient(135deg, #21d4aa, #7b61ff)">Spinach</span>
+            <strong>AI detecting fridge items...</strong>
+          </div>
+          <h2>Detected ingredients</h2>
+          <div class="chip-row" id="ingredientChips"></div>
+          <h2>Recipe suggestions</h2>
+          <div id="recipeList"></div>
+          <button class="primary" style="--a: var(--violet); --b: var(--pink)" data-testid="refresh-recipes" onclick="refreshRecipes()">Suggest more recipes</button>
+        </div>
+
+        <div class="view" id="progress">
+          <h1>Progress</h1>
+          <p class="muted">Weight, BMI, muscle, streaks, milestones.</p>
+          <h2>Weight trend</h2>
+          <div class="card"><strong style="font-size: 44px"><span id="weightText">76.4</span> kg</strong><p class="muted">Weekly average - BMI 23.8 - Goal ETA 9 weeks</p></div>
+          <h2>Milestones</h2>
+          <div class="card"><p>Hydration streak: <strong id="hydrationText">8 days</strong></p><p>XP points: <strong id="xpText">4,850</strong></p><p>Badges: <strong>Protein Pro</strong></p></div>
+          <button class="primary" style="--a: var(--gold); --b: var(--coral)" onclick="openSheet('weightSheet')" data-testid="progress-weight">Log today's weight</button>
+        </div>
+
+        <div class="view" id="profile">
+          <h1>Profile</h1>
+          <p class="muted">Goals, privacy, exports, subscription.</p>
+          <h2>Yogesh</h2>
+          <div class="card"><p>High protein - Indian diet - Premium</p></div>
+          <h2>Settings</h2>
+          <div class="settings-grid">
+            <button class="small-btn" style="--a: var(--mint); --b: var(--blue)" onclick="toast('Goal settings opened.')">Goals</button>
+            <button class="small-btn" style="--a: var(--violet); --b: var(--pink)" onclick="toast('Notifications enabled for meals and water.')">Notifications</button>
+            <button class="small-btn" style="--a: var(--gold); --b: var(--coral)" onclick="toggleTheme()">Theme</button>
+            <button class="small-btn" style="--a: #111719; --b: #455a82" onclick="toast('Health apps connection screen opened.')">Connected apps</button>
+            <button class="small-btn" style="--a: #21d4aa; --b: #7b61ff" onclick="toast('CSV export prepared.')">Export data</button>
+            <button class="small-btn" style="--a: #ff5aa5; --b: #ff725e" onclick="toast('Privacy center opened.')">Privacy</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet card" id="mealSheet" aria-label="Add meal sheet">
+        <div class="row">
+          <h3>Add quick meal</h3>
+          <button class="iconbtn" onclick="closeSheets()">x</button>
+        </div>
+        <input class="field" id="mealName" value="Oats whey bowl" aria-label="Meal name" />
+        <div class="chip-row">
+          <button class="chip" onclick="quickMeal('Paneer tikka', 360, 34, 18, 16)">Paneer tikka</button>
+          <button class="chip" onclick="quickMeal('Dal rice', 520, 18, 82, 11)">Dal rice</button>
+          <button class="chip" onclick="quickMeal('Protein smoothie', 300, 36, 22, 4)">Smoothie</button>
+        </div>
+        <button class="primary" style="--a: var(--mint); --b: var(--blue)" data-testid="save-meal" onclick="saveMeal()">Save meal</button>
+      </section>
+
+      <section class="sheet card" id="weightSheet" aria-label="Add weight sheet">
+        <div class="row">
+          <h3>Log weight</h3>
+          <button class="iconbtn" onclick="closeSheets()">x</button>
+        </div>
+        <input class="field" id="weightInput" type="number" step="0.1" value="76.2" aria-label="Weight" />
+        <button class="primary" style="--a: var(--gold); --b: var(--coral)" data-testid="save-weight" onclick="saveWeight()">Save weight</button>
+      </section>
+
+      <nav class="tabs">
+        <button class="tab active" data-view="home" data-testid="tab-home">Home</button>
+        <button class="tab" data-view="analytics" data-testid="tab-analytics">Analytics</button>
+        <button class="tab" data-view="scan" data-testid="tab-scan">Scan</button>
+        <button class="tab" data-view="progress" data-testid="tab-progress">Progress</button>
+        <button class="tab" data-view="profile" data-testid="tab-profile">Profile</button>
+      </nav>
+    </main>
+
+    <script>
+      const state = {
+        calorieGoal: 2100,
+        consumed: 1420,
+        protein: 96,
+        carbs: 154,
+        fat: 42,
+        water: 1800,
+        weight: 76.4,
+        xp: 4850,
+        meals: [
+          { name: "Paneer bhurji bowl", calories: 430, protein: 32, carbs: 38, fat: 16, time: "8:20 AM" },
+          { name: "Gujarati thali", calories: 690, protein: 28, carbs: 94, fat: 22, time: "1:10 PM" },
+        ],
+        scanItems: [
+          { name: "Gujarati dal", detail: "1 bowl", calories: 180, confidence: 91 },
+          { name: "Rotli", detail: "2 pieces", calories: 210, confidence: 87 },
+          { name: "Paneer sabzi", detail: "150g", calories: 330, confidence: 84 },
+        ],
+        ingredients: ["Paneer", "Tomato", "Curd", "Spinach", "Lemon", "Green chili"],
+        recipeSet: 0,
+        recipes: [
+          [
+            { name: "Paneer spinach protein bowl", calories: 460, protein: 39, carbs: 28, fat: 21, time: "18 min", reason: "Uses paneer, spinach, tomato and curd. High protein dinner under 500 kcal." },
+            { name: "Tomato curd paneer toast", calories: 390, protein: 31, carbs: 34, fat: 14, time: "12 min", reason: "Quick post-workout meal with creamy curd dressing." },
+            { name: "Gujarati paneer salad chaat", calories: 330, protein: 28, carbs: 22, fat: 13, time: "10 min", reason: "Light, spicy, no-cook recipe from fridge items." },
+          ],
+          [
+            { name: "Spinach paneer bhurji wrap", calories: 520, protein: 42, carbs: 44, fat: 18, time: "20 min", reason: "Best if you want a filling gym meal." },
+            { name: "Cold curd protein bowl", calories: 310, protein: 27, carbs: 24, fat: 10, time: "8 min", reason: "Low effort meal with curd, paneer cubes and tomato." },
+            { name: "Paneer tomato soup bowl", calories: 360, protein: 30, carbs: 26, fat: 12, time: "16 min", reason: "Warm, light and easy for dinner." },
+          ],
+        ],
+      };
+
+      function show(id) {
+        closeSheets();
+        document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === id));
+        document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === id));
+        document.getElementById("screen").scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function toast(message) {
+        const el = document.getElementById("toast");
+        el.textContent = message;
+        el.classList.add("active");
+        clearTimeout(window.toastTimer);
+        window.toastTimer = setTimeout(() => el.classList.remove("active"), 1800);
+      }
+
+      function openSheet(id) {
+        closeSheets();
+        document.getElementById(id).classList.add("active");
+      }
+
+      function closeSheets() {
+        document.querySelectorAll(".sheet").forEach((sheet) => sheet.classList.remove("active"));
+      }
+
+      function render() {
+        const remaining = Math.max(0, state.calorieGoal - state.consumed);
+        const calProgress = Math.min(100, Math.round((state.consumed / state.calorieGoal) * 100));
+        const proteinProgress = Math.min(100, Math.round((state.protein / 140) * 100));
+        const waterProgress = Math.min(100, Math.round((state.water / 3000) * 100));
+
+        document.getElementById("remainingText").textContent = remaining;
+        document.getElementById("calRingText").textContent = remaining;
+        document.getElementById("proteinText").textContent = `${state.protein}g`;
+        document.getElementById("cubeProtein").textContent = `P${state.protein}`;
+        document.getElementById("waterText").textContent = `${(state.water / 1000).toFixed(1)}L`;
+        document.getElementById("carbText").textContent = `${state.carbs}g`;
+        document.getElementById("fatText").textContent = `${state.fat}g`;
+        document.getElementById("weightText").textContent = state.weight.toFixed(1);
+        document.getElementById("xpText").textContent = state.xp.toLocaleString("en-IN");
+        document.getElementById("calRing").style.setProperty("--p", calProgress);
+        document.getElementById("proteinRing").style.setProperty("--p", proteinProgress);
+        document.getElementById("waterRing").style.setProperty("--p", waterProgress);
+        document.getElementById("todayBar").style.setProperty("--w", `${calProgress}%`);
+
+        document.getElementById("mealList").innerHTML = state.meals.map((meal, index) => `
+          <div class="card meal" data-testid="meal-${index}">
+            <div class="photo" style="background: ${index % 2 ? "linear-gradient(135deg, #ff725e, #ffc857)" : ""}"></div>
+            <div><strong>${meal.name}</strong><p class="muted">${meal.calories} kcal - P${meal.protein} C${meal.carbs} F${meal.fat} - ${meal.time}</p></div>
+            <button class="iconbtn" aria-label="Delete ${meal.name}" onclick="deleteMeal(${index})">x</button>
+          </div>
+        `).join("");
+
+        document.getElementById("scanResults").innerHTML = state.scanItems.map((item, index) => `
+          <div class="card" style="margin-bottom: 10px" data-testid="scan-item-${index}">
+            <div class="row">
+              <div><strong>${item.name}</strong><p class="muted">${item.detail} - ${item.calories} kcal - confidence ${item.confidence}%</p></div>
+              <button class="iconbtn" aria-label="Edit ${item.name}" onclick="editScan(${index})">edit</button>
+            </div>
+          </div>
+        `).join("");
+
+        document.getElementById("ingredientChips").innerHTML = state.ingredients.map((item) => `
+          <button class="chip" onclick="toast('${item} selected for recipe ideas.')">${item}</button>
+        `).join("");
+
+        document.getElementById("recipeList").innerHTML = state.recipes[state.recipeSet].map((recipe, index) => `
+          <div class="card recipe-card" data-testid="recipe-${index}">
+            <div class="row">
+              <div>
+                <strong>${recipe.name}</strong>
+                <p class="muted">${recipe.reason}</p>
+                <div class="recipe-meta">
+                  <span class="chip">${recipe.calories} kcal</span>
+                  <span class="chip">P${recipe.protein}g</span>
+                  <span class="chip">${recipe.time}</span>
+                </div>
+              </div>
+            </div>
+            <button class="primary" style="--a: var(--mint); --b: var(--blue)" data-testid="add-recipe-${index}" onclick="addRecipe(${index})">Cook and add meal</button>
+          </div>
+        `).join("");
+      }
+
+      function quickMeal(name, calories, protein, carbs, fat) {
+        document.getElementById("mealName").value = name;
+        state.pendingMeal = { name, calories, protein, carbs, fat };
+        toast(`${name} selected.`);
+      }
+
+      function saveMeal() {
+        const name = document.getElementById("mealName").value.trim() || "Custom meal";
+        const meal = state.pendingMeal || { name, calories: 340, protein: 28, carbs: 38, fat: 8 };
+        meal.name = name;
+        meal.time = "Now";
+        state.meals.unshift(meal);
+        state.consumed += meal.calories;
+        state.protein += meal.protein;
+        state.carbs += meal.carbs;
+        state.fat += meal.fat;
+        state.xp += 75;
+        state.pendingMeal = null;
+        closeSheets();
+        render();
+        toast("Meal added to daily log.");
+      }
+
+      function deleteMeal(index) {
+        const meal = state.meals.splice(index, 1)[0];
+        state.consumed = Math.max(0, state.consumed - meal.calories);
+        state.protein = Math.max(0, state.protein - meal.protein);
+        state.carbs = Math.max(0, state.carbs - meal.carbs);
+        state.fat = Math.max(0, state.fat - meal.fat);
+        render();
+        toast(`${meal.name} removed.`);
+      }
+
+      function addWater(amount) {
+        state.water = Math.min(3000, state.water + amount);
+        document.getElementById("hydrationText").textContent = state.water >= 3000 ? "9 days" : "8 days";
+        render();
+        toast(`Added ${amount} ml water.`);
+      }
+
+      function saveWeight() {
+        const value = Number(document.getElementById("weightInput").value);
+        if (!Number.isFinite(value) || value <= 0) {
+          toast("Enter a valid weight.");
+          return;
+        }
+        state.weight = value;
+        closeSheets();
+        render();
+        show("progress");
+        toast("Weight log saved.");
+      }
+
+      function aiSuggestion() {
+        document.getElementById("aiCoachText").textContent = "Try paneer tikka with salad tonight";
+        document.getElementById("coachLine").textContent = "AI suggests a high-protein dinner under 520 kcal.";
+        toast("AI meal suggestion generated.");
+      }
+
+      function refreshRecipes() {
+        state.recipeSet = (state.recipeSet + 1) % state.recipes.length;
+        render();
+        toast("New fridge recipes generated.");
+      }
+
+      function addRecipe(index) {
+        const recipe = state.recipes[state.recipeSet][index];
+        const meal = {
+          name: recipe.name,
+          calories: recipe.calories,
+          protein: recipe.protein,
+          carbs: recipe.carbs,
+          fat: recipe.fat,
+          time: "Now",
+        };
+        state.meals.unshift(meal);
+        state.consumed += meal.calories;
+        state.protein += meal.protein;
+        state.carbs += meal.carbs;
+        state.fat += meal.fat;
+        state.xp += 100;
+        document.getElementById("aiCoachText").textContent = `${recipe.name} added`;
+        document.getElementById("coachLine").textContent = "Fridge AI Coach converted visible ingredients into a logged meal.";
+        render();
+        show("home");
+        toast("Recipe added to meal timeline.");
+      }
+
+      function editScan(index) {
+        state.scanItems[index].calories += 10;
+        render();
+        toast(`${state.scanItems[index].name} portion adjusted.`);
+      }
+
+      function saveScan() {
+        const calories = state.scanItems.reduce((sum, item) => sum + item.calories, 0);
+        const meal = { name: "AI scanned thali", calories, protein: 36, carbs: 82, fat: 24, time: "Now" };
+        state.meals.unshift(meal);
+        state.consumed += meal.calories;
+        state.protein += meal.protein;
+        state.carbs += meal.carbs;
+        state.fat += meal.fat;
+        state.xp += 120;
+        render();
+        show("home");
+        toast("AI scan added to meal timeline.");
+      }
+
+      function toggleTheme() {
+        document.body.classList.toggle("dark-preview");
+        toast("Theme preference toggled.");
+      }
+
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => show(tab.dataset.view));
+      });
+
+      render();
+    </script>
+  </body>
+</html>
