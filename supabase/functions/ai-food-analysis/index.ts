@@ -18,7 +18,7 @@ serve(async (req) => {
     model = Deno.env.get("GEMINI_MODEL") ?? "gemini-1.5-flash",
   } = await req.json();
 
-  const geminiKey = Deno.env.get("AIzaSyAzHUik20E9ZpXB6g3Dfu8AN8HwW2kJWQU");
+  const geminiKey = Deno.env.get("GEMINI_API_KEY");
   if (!geminiKey) {
     return Response.json({ error: "GEMINI_API_KEY is not configured" }, { status: 500, headers: cors });
   }
