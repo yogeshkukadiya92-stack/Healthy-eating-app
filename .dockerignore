@@ -1,0 +1,9 @@
+.git
+.github
+admin
+app
+docs
+supabase
+node_modules
+npm-debug.log
+*.log
