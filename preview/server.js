@@ -13,6 +13,13 @@ const server = http.createServer((req, res) => {
     res.end("ok");
     return;
   }
+  if (urlPath === "/config") {
+    const supabaseUrl = process.env.SUPABASE_URL || "";
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || "";
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify({ supabaseUrl, supabaseAnonKey }));
+    return;
+  }
   const filePath = path.join(root, path.normalize(urlPath).replace(/^(\.\.[/\\])+/, ""));
 
   fs.readFile(filePath, (error, data) => {

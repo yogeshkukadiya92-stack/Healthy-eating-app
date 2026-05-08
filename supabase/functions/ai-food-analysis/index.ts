@@ -78,14 +78,22 @@ serve(async (req) => {
 
   const parsed = JSON.parse(text || "{}");
 
-  const supabase = createClient(Deno.env.get("https://tfbltraojcszrlobeurd.supabase.co")!, Deno.env.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmYmx0cmFvamNzenJsb2JldXJkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODIxNzA1NiwiZXhwIjoyMDkzNzkzMDU2fQ.WzKOsWoHtbZwFnRdL_jBiVrNsUqVcxeMxMGbUuFW-xc")!);
-  await supabase.from("ai_food_analyses").insert({
-    user_id: userId,
-    image_url: imageUrl,
-    provider: "gemini",
-    detected_items: parsed.detectedItems ?? [],
-    confidence: parsed.confidence ?? null,
-  });
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SERVICE_ROLE_KEY")!,
+  );
+
+  // For demo/preview clients that don't authenticate, allow userId to be optional.
+  // If userId is missing, we skip DB persistence and only return the analysis result.
+  if (userId) {
+    await supabase.from("ai_food_analyses").insert({
+      user_id: userId,
+      image_url: imageUrl,
+      provider: "gemini",
+      detected_items: parsed.detectedItems ?? [],
+      confidence: parsed.confidence ?? null,
+    });
+  }
 
   return Response.json(parsed, { headers: cors });
 });

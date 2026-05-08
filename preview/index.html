@@ -676,7 +676,9 @@
           <h1>AI food scan</h1>
           <p class="muted">Camera overlay, food boxes, editable macros.</p>
           <h2>Scanning</h2>
-          <div class="scan" data-testid="scanner">AI detecting plate...</div>
+          <div class="scan" data-testid="scanner" id="scannerBox">Upload a food photo to analyze</div>
+          <input class="field" id="scanFile" type="file" accept="image/*" aria-label="Food photo" />
+          <button class="primary" style="--a: var(--violet); --b: var(--pink)" data-testid="analyze-scan" onclick="analyzeFoodScan()">Analyze with AI</button>
           <h2>Detected foods</h2>
           <div id="scanResults"></div>
           <button class="primary" style="--a: var(--mint); --b: var(--blue)" data-testid="save-scan" onclick="saveScan()">Add scan to daily log</button>
@@ -975,9 +977,95 @@
         toast(`${state.scanItems[index].name} portion adjusted.`);
       }
 
+      const runtimeConfig = { supabaseUrl: "", supabaseAnonKey: "" };
+
+      async function loadRuntimeConfig() {
+        try {
+          const res = await fetch("/config", { cache: "no-store" });
+          const data = await res.json();
+          runtimeConfig.supabaseUrl = String(data.supabaseUrl || "");
+          runtimeConfig.supabaseAnonKey = String(data.supabaseAnonKey || "");
+        } catch (_) {
+          // ignore; UI will show a friendly toast when user tries to scan
+        }
+      }
+
+      async function analyzeFoodScan() {
+        const input = document.getElementById("scanFile");
+        const scannerBox = document.getElementById("scannerBox");
+
+        if (!runtimeConfig.supabaseUrl || !runtimeConfig.supabaseAnonKey) {
+          toast("Missing SUPABASE_URL / SUPABASE_ANON_KEY on the server.");
+          return;
+        }
+
+        if (!input || !input.files || input.files.length === 0) {
+          toast("Please choose a photo first.");
+          return;
+        }
+
+        const file = input.files[0];
+        scannerBox.textContent = "Analyzing photo with AI...";
+
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error("Failed to read image"));
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.readAsDataURL(file);
+        });
+
+        const base64 = String(dataUrl).split(",")[1] || "";
+        if (!base64) {
+          toast("Could not parse image data.");
+          scannerBox.textContent = "Upload a food photo to analyze";
+          return;
+        }
+
+        try {
+          const resp = await fetch(`${runtimeConfig.supabaseUrl}/functions/v1/ai-food-analysis`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": runtimeConfig.supabaseAnonKey,
+              "Authorization": `Bearer ${runtimeConfig.supabaseAnonKey}`,
+            },
+            body: JSON.stringify({
+              imageBase64: base64,
+              imageMimeType: file.type || "image/jpeg",
+              cuisineHints: ["Gujarati", "Indian", "homemade", "street food", "thali"],
+            }),
+          });
+
+          const payload = await resp.json();
+          if (!resp.ok) throw new Error(payload?.error || "AI scan failed");
+
+          const items = Array.isArray(payload.detectedItems) ? payload.detectedItems : [];
+          state.scanItems = items.map((it) => ({
+            name: String(it.foodName || "Food item"),
+            detail: String(it.portion || ""),
+            calories: Number(it.calories || 0),
+            confidence: Math.round(Number(it.confidence || 0) * 100),
+            protein: Number(it.protein || 0),
+            carbs: Number(it.carbs || 0),
+            fat: Number(it.fat || 0),
+          }));
+
+          scannerBox.textContent = items.length ? "Analysis complete" : "No foods detected. Try another angle.";
+          render();
+          toast(items.length ? "AI scan complete." : "No foods detected.");
+        } catch (error) {
+          scannerBox.textContent = "Upload a food photo to analyze";
+          toast(String(error?.message || "Scan failed."));
+        }
+      }
+
       function saveScan() {
-        const calories = state.scanItems.reduce((sum, item) => sum + item.calories, 0);
-        const meal = { name: "AI scanned thali", calories, protein: 36, carbs: 82, fat: 24, time: "Now" };
+        const calories = state.scanItems.reduce((sum, item) => sum + Number(item.calories || 0), 0);
+        const protein = state.scanItems.reduce((sum, item) => sum + Number(item.protein || 0), 0);
+        const carbs = state.scanItems.reduce((sum, item) => sum + Number(item.carbs || 0), 0);
+        const fat = state.scanItems.reduce((sum, item) => sum + Number(item.fat || 0), 0);
+
+        const meal = { name: "AI scanned meal", calories, protein, carbs, fat, time: "Now" };
         state.meals.unshift(meal);
         state.consumed += meal.calories;
         state.protein += meal.protein;
@@ -998,6 +1086,7 @@
         tab.addEventListener("click", () => show(tab.dataset.view));
       });
 
+      loadRuntimeConfig();
       render();
     </script>
   </body>
