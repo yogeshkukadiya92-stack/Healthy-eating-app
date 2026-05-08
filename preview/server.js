@@ -8,6 +8,11 @@ const root = __dirname;
 
 const server = http.createServer((req, res) => {
   const urlPath = req.url === "/" ? "/index.html" : req.url;
+  if (urlPath === "/healthz") {
+    res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("ok");
+    return;
+  }
   const filePath = path.join(root, path.normalize(urlPath).replace(/^(\.\.[/\\])+/, ""));
 
   fs.readFile(filePath, (error, data) => {
