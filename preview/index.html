@@ -1027,6 +1027,10 @@
           const data = await res.json();
           runtimeConfig.supabaseUrl = String(data.supabaseUrl || "");
           runtimeConfig.supabaseAnonKey = String(data.supabaseAnonKey || "");
+          const scanStatus = document.getElementById("scanStatus");
+          if (scanStatus && runtimeConfig.supabaseUrl && runtimeConfig.supabaseAnonKey) {
+            scanStatus.textContent = "AI ready. Railway can proxy scans and fall back to Supabase when needed.";
+          }
         } catch (_) {
           // ignore; UI will show a friendly toast when user tries to scan
         }
@@ -1038,12 +1042,6 @@
         const scanPreview = document.getElementById("scanPreview");
         const scanPreviewImage = document.getElementById("scanPreviewImage");
         const scanStatus = document.getElementById("scanStatus");
-
-        if (!runtimeConfig.supabaseUrl || !runtimeConfig.supabaseAnonKey) {
-          toast("Missing SUPABASE_URL / SUPABASE_ANON_KEY on the server.");
-          scanStatus.textContent = "Add Supabase environment variables on Railway to enable AI scan.";
-          return;
-        }
 
         if (!input || !input.files || input.files.length === 0) {
           toast("Please choose a photo first.");
@@ -1075,13 +1073,9 @@
         }
 
         try {
-          const resp = await fetch(`${runtimeConfig.supabaseUrl}/functions/v1/ai-food-analysis`, {
+          const resp = await fetch("/api/scan", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "apikey": runtimeConfig.supabaseAnonKey,
-              "Authorization": `Bearer ${runtimeConfig.supabaseAnonKey}`,
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               imageBase64: base64,
               imageMimeType: file.type || "image/jpeg",
@@ -1090,7 +1084,10 @@
           });
 
           const payload = await resp.json();
-          if (!resp.ok) throw new Error(payload?.error || "AI scan failed");
+          if (!resp.ok) {
+            const detail = payload?.details?.error?.message || payload?.details?.message || payload?.error || "AI scan failed";
+            throw new Error(detail);
+          }
 
           const items = Array.isArray(payload.detectedItems) ? payload.detectedItems : [];
           state.scanItems = items.map((it) => ({
