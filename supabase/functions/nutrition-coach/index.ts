@@ -15,21 +15,38 @@ serve(async (req) => {
     `Question: ${question}\n` +
     `Give practical meal suggestions (Indian-friendly), protein guidance, and healthier alternatives. Keep it short and actionable.`;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.5 },
-      }),
-    },
+  const fallbackModels = [model, "gemini-1.5-flash", "gemini-1.5-flash-8b"].filter(
+    (modelName, index, all) => modelName && all.indexOf(modelName) === index,
   );
 
-  const data = await response.json();
-  if (!response.ok) {
-    return Response.json({ error: "Gemini request failed", details: data }, { status: 502 });
+  let data: any = null;
+  let lastFailure: unknown = null;
+
+  for (const modelName of fallbackModels) {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(geminiKey)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.5 },
+        }),
+      },
+    );
+
+    data = await response.json();
+    if (!response.ok) {
+      lastFailure = { model: modelName, payload: data };
+      continue;
+    }
+
+    lastFailure = null;
+    break;
+  }
+
+  if (lastFailure) {
+    return Response.json({ error: "Gemini request failed", details: lastFailure }, { status: 502 });
   }
 
   const message =

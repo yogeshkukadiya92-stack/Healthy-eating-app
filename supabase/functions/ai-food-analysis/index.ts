@@ -52,31 +52,45 @@ serve(async (req) => {
     });
   }
 
-  const geminiResp = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts }],
-        generationConfig: {
-          temperature: 0.2,
-          responseMimeType: "application/json",
-        },
-      }),
-    },
+  const fallbackModels = [model, "gemini-1.5-flash", "gemini-1.5-flash-8b"].filter(
+    (modelName, index, all) => modelName && all.indexOf(modelName) === index,
   );
 
-  const geminiPayload = await geminiResp.json();
-  if (!geminiResp.ok) {
-    return Response.json({ error: "Gemini request failed", details: geminiPayload }, { status: 502, headers: cors });
+  let parsed: Record<string, unknown> = {};
+  let lastFailure: unknown = null;
+
+  for (const modelName of fallbackModels) {
+    const geminiResp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(geminiKey)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts }],
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: "application/json",
+          },
+        }),
+      },
+    );
+
+    const geminiPayload = await geminiResp.json();
+    if (!geminiResp.ok) {
+      lastFailure = { model: modelName, payload: geminiPayload };
+      continue;
+    }
+
+    const text =
+      geminiPayload?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text ?? "").join("") ??
+      "{}";
+    parsed = JSON.parse(text || "{}");
+    lastFailure = null;
+    break;
   }
-
-  const text =
-    geminiPayload?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text ?? "").join("") ??
-    "{}";
-
-  const parsed = JSON.parse(text || "{}");
+  if (lastFailure) {
+    return Response.json({ error: "Gemini request failed", details: lastFailure }, { status: 502, headers: cors });
+  }
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,

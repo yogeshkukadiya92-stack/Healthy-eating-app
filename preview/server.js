@@ -6,6 +6,9 @@ const port = Number(process.env.PORT || 4173);
 const host = process.env.HOST || "0.0.0.0";
 const root = __dirname;
 const geminiModel = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+const geminiFallbackModels = [geminiModel, "gemini-1.5-flash", "gemini-1.5-flash-8b"].filter(
+  (modelName, index, all) => modelName && all.indexOf(modelName) === index,
+);
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
@@ -45,35 +48,40 @@ async function analyzeWithGemini({ imageBase64, imageMimeType, cuisineHints }) {
     `Prioritize Indian and Gujarati foods, thali, homemade meals, street food, gym meals, and restaurant dishes.\n` +
     `Hints: ${cuisineHints.join(", ")}.`;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent?key=${encodeURIComponent(geminiApiKey)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{
-          role: "user",
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType: imageMimeType, data: imageBase64 } },
-          ],
-        }],
-        generationConfig: {
-          temperature: 0.2,
-          responseMimeType: "application/json",
-        },
-      }),
-    },
-  );
+  let lastFailure = null;
+  for (const modelName of geminiFallbackModels) {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(geminiApiKey)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            role: "user",
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType: imageMimeType, data: imageBase64 } },
+            ],
+          }],
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: "application/json",
+          },
+        }),
+      },
+    );
 
-  const payload = await response.json();
-  if (!response.ok) {
-    return { ok: false, status: 502, payload: { error: "Gemini request failed", details: payload } };
+    const payload = await response.json();
+    if (!response.ok) {
+      lastFailure = { model: modelName, payload };
+      continue;
+    }
+
+    const text = payload?.candidates?.[0]?.content?.parts?.map((part) => part?.text || "").join("") || "{}";
+    const parsed = JSON.parse(text || "{}");
+    return { ok: true, status: 200, payload: parsed };
   }
-
-  const text = payload?.candidates?.[0]?.content?.parts?.map((part) => part?.text || "").join("") || "{}";
-  const parsed = JSON.parse(text || "{}");
-  return { ok: true, status: 200, payload: parsed };
+  return { ok: false, status: 502, payload: { error: "Gemini request failed", details: lastFailure } };
 }
 
 async function proxyToSupabaseScan(body) {
