@@ -51,8 +51,8 @@ supabase functions deploy daily-summary
 Set secrets:
 
 ```bash
-supabase secrets set OPENAI_API_KEY=...
 supabase secrets set SERVICE_ROLE_KEY=...
+supabase secrets set GEMINI_API_KEY=...
 ```
 
 The schema uses RLS so users can only access their own logs. The `foods` table is globally readable for search.
