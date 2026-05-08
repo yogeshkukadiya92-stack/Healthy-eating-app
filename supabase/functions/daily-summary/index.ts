@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 serve(async (req) => {
   const { userId } = await req.json();
-  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SERVICE_ROLE_KEY")!);
+  const supabase = createClient(Deno.env.get("https://tfbltraojcszrlobeurd.supabase.co")!, Deno.env.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmYmx0cmFvamNzenJsb2JldXJkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODIxNzA1NiwiZXhwIjoyMDkzNzkzMDU2fQ.WzKOsWoHtbZwFnRdL_jBiVrNsUqVcxeMxMGbUuFW-xc")!);
   const from = new Date();
   from.setHours(0, 0, 0, 0);
 
