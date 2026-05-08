@@ -18,7 +18,7 @@ serve(async (req) => {
     model = Deno.env.get("GEMINI_MODEL") ?? "gemini-1.5-flash",
   } = await req.json();
 
-  const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  const geminiKey = Deno.env.get("AIzaSyAzHUik20E9ZpXB6g3Dfu8AN8HwW2kJWQU");
   if (!geminiKey) {
     return Response.json({ error: "GEMINI_API_KEY is not configured" }, { status: 500, headers: cors });
   }
@@ -78,7 +78,7 @@ serve(async (req) => {
 
   const parsed = JSON.parse(text || "{}");
 
-  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SERVICE_ROLE_KEY")!);
+  const supabase = createClient(Deno.env.get("https://tfbltraojcszrlobeurd.supabase.co")!, Deno.env.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmYmx0cmFvamNzenJsb2JldXJkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODIxNzA1NiwiZXhwIjoyMDkzNzkzMDU2fQ.WzKOsWoHtbZwFnRdL_jBiVrNsUqVcxeMxMGbUuFW-xc")!);
   await supabase.from("ai_food_analyses").insert({
     user_id: userId,
     image_url: imageUrl,
