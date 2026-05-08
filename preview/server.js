@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 const port = Number(process.env.PORT || 4173);
+const host = process.env.HOST || "0.0.0.0";
 const root = __dirname;
 
 const server = http.createServer((req, res) => {
@@ -23,6 +24,6 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Aura Diet preview running at http://127.0.0.1:${port}`);
+server.listen(port, host, () => {
+  console.log(`Aura Diet preview running at http://${host}:${port}`);
 });

@@ -1,0 +1,12 @@
+{
+  "name": "healthy-eating-app-preview",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Railway deployable preview for the Healthy Eating App.",
+  "scripts": {
+    "start": "node preview/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
