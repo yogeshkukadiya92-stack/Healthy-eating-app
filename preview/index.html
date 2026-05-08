@@ -1085,8 +1085,14 @@
 
           const payload = await resp.json();
           if (!resp.ok) {
-            const detail = payload?.details?.error?.message || payload?.details?.message || payload?.error || "AI scan failed";
-            throw new Error(detail);
+            const failedModel = payload?.details?.model ? ` [model: ${payload.details.model}]` : "";
+            const detail =
+              payload?.details?.payload?.error?.message ||
+              payload?.details?.error?.message ||
+              payload?.details?.message ||
+              payload?.error ||
+              "AI scan failed";
+            throw new Error(`${detail}${failedModel}`);
           }
 
           const items = Array.isArray(payload.detectedItems) ? payload.detectedItems : [];
@@ -1108,7 +1114,7 @@
           toast(items.length ? "AI scan complete." : "No foods detected.");
         } catch (error) {
           scannerBox.textContent = "Upload a food photo to analyze";
-          scanStatus.textContent = "AI scan failed. Check Supabase function deploy and Railway env vars.";
+          scanStatus.textContent = String(error?.message || "AI scan failed.");
           toast(String(error?.message || "Scan failed."));
         }
       }
